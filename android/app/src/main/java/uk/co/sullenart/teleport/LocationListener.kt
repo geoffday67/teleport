@@ -5,7 +5,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import io.reactivex.processors.PublishProcessor
-import io.reactivex.subjects.PublishSubject
+import timber.log.Timber
 
 class LocationListener : ValueEventListener {
     val updates: PublishProcessor<LocationRequest> = PublishProcessor.create()
@@ -22,6 +22,7 @@ class LocationListener : ValueEventListener {
 
     override fun onDataChange(data: DataSnapshot) {
         data.getValue(LocationRequest::class.java)?.let {
+            Timber.d("Location request $it")
             updates.onNext(it)
         }
     }

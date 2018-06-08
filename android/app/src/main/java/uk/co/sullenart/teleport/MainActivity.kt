@@ -21,37 +21,5 @@ class MainActivity : AppCompatActivity() {
         Intent(this, LocationService::class.java).let {
             startService(it)
         }
-
-        /*val client = LocationServices.getFusedLocationProviderClient(this)
-
-        val database = FirebaseDatabase.getInstance()
-        database.getReference("/location").addValueEventListener(object : ValueEventListener {
-            override fun onCancelled(error: DatabaseError) {
-            }
-
-            override fun onDataChange(data: DataSnapshot) {
-                val request = data.getValue(LocationRequest::class.java)
-                Timber.d("Location request ${request.toString()}")
-
-                val location = Location("blah").apply {
-                    latitude = request?.latitude ?: 0.0
-                    longitude = request?.longitude ?: 0.0
-                    time = System.currentTimeMillis()
-                    elapsedRealtimeNanos = SystemClock.elapsedRealtimeNanos()
-                    accuracy = 10.0f
-                }
-
-                try {
-                    client.setMockMode(true)
-                            .addOnSuccessListener { Timber.d("Location client set to mock mode") }
-                    client.setMockLocation(location)
-                            .addOnSuccessListener { Timber.d("Mock location set to ${request?.latitude}, ${request?.longitude}") }
-                } catch (e: SecurityException) {
-                    Timber.e(e)
-                }
-            }
-        })*/
     }
-
-
 }
