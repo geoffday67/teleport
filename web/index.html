@@ -14,7 +14,7 @@
         }
 
         #map {
-            height: 90%;
+            height: 100%;
         }
 
         .settings {
@@ -26,7 +26,6 @@
     <script src="https://www.gstatic.com/firebasejs/5.0.4/firebase-database.js"></script>
 
     <script>
-        // Initialize Firebase
         var config = {
             apiKey: "AIzaSyChFuVo9PP3cpYt2MT3aUQEJR4S-3bpOc4",
             authDomain: "teleport-bf326.firebaseapp.com",
@@ -44,7 +43,7 @@
 
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
-                center: { lat: 51.3449289, lng: -2.2545383 },
+                center: { lat: 51.4516238, lng: -2.6013804 },
                 disableDoubleClickZoom: true,
                 zoom: 15
             });
@@ -53,12 +52,6 @@
         }
 
         function onMapClick(event) {
-            /*let command = { operation: OPERATION_SET_LOCATION };
-            let lat = event.latLng.lat();
-            let lng = event.latLng.lng();
-            command.data = { 'latitude': lat, 'longitude': lng };
-            websocket.send(JSON.stringify(command));*/
-
             click = {'latitude': event.latLng.lat(), 'longitude': event.latLng.lng()};
             console.log(click);
             refClick.set(click);
