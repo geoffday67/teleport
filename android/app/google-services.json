@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "724284015869",
+    "firebase_url": "https://teleport-bf326.firebaseio.com",
+    "project_id": "teleport-bf326",
+    "storage_bucket": "teleport-bf326.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:724284015869:android:d415affa7c4b6388",
+        "android_client_info": {
+          "package_name": "uk.co.sullenart.teleport"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "724284015869-opuiq9a7gjmf5a10ovsl9auvv49i5d0l.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "724284015869-opuiq9a7gjmf5a10ovsl9auvv49i5d0l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDY1WzGx5PWODxf4QVYps8B6OiCPBKTPr0"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

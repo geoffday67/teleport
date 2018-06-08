@@ -1,0 +1,79 @@
+<html>
+
+<head>
+    <title>Teleport</title>
+
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            height: 90%;
+        }
+
+        .settings {
+            padding: 16px;
+        }
+    </style>
+
+    <script src="https://www.gstatic.com/firebasejs/5.0.4/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.0.4/firebase-database.js"></script>
+
+    <script>
+        // Initialize Firebase
+        var config = {
+            apiKey: "AIzaSyChFuVo9PP3cpYt2MT3aUQEJR4S-3bpOc4",
+            authDomain: "teleport-bf326.firebaseapp.com",
+            databaseURL: "https://teleport-bf326.firebaseio.com",
+            projectId: "teleport-bf326",
+            storageBucket: "teleport-bf326.appspot.com",
+            messagingSenderId: "724284015869"
+        };
+        firebase.initializeApp(config);
+    </script>
+
+    <script>
+        database = firebase.database();
+        refClick = database.ref('/geoff/location');
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 51.3449289, lng: -2.2545383 },
+                disableDoubleClickZoom: true,
+                zoom: 15
+            });
+
+            map.addListener('click', onMapClick);
+        }
+
+        function onMapClick(event) {
+            /*let command = { operation: OPERATION_SET_LOCATION };
+            let lat = event.latLng.lat();
+            let lng = event.latLng.lng();
+            command.data = { 'latitude': lat, 'longitude': lng };
+            websocket.send(JSON.stringify(command));*/
+
+            click = {'latitude': event.latLng.lat(), 'longitude': event.latLng.lng()};
+            console.log(click);
+            refClick.set(click);
+        }
+
+    </script>
+
+</head>
+
+<body>
+    <div id="map"></div>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDDH6z_K4eyScVhx5qkkoWR9EmNToZZvNE&callback=initMap" async
+        defer></script>
+
+</body>
+
+</html>
