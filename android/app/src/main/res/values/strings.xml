@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Teleport</string>
+    <string name="project_name_title">Project name</string>
+    <string name="set_project_name_button">Change</string>
+    <string name="new_project_name">New</string>
 </resources>

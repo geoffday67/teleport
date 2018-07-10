@@ -5,22 +5,15 @@
 
     <meta name="viewport" content="initial-scale=1.0">
     <meta charset="utf-8">
-    <style>
-        html,
-        body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
 
-        #map {
-            height: 100%;
-        }
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB"
+        crossorigin="anonymous">
 
-        .settings {
-            padding: 16px;
-        }
-    </style>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T"
+        crossorigin="anonymous"></script>
 
     <script src="https://www.gstatic.com/firebasejs/5.0.4/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/5.0.4/firebase-database.js"></script>
@@ -39,33 +32,130 @@
 
     <script>
         database = firebase.database();
-        refClick = database.ref('/geoff/location');
+        setProjectName('');
 
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
                 center: { lat: 51.4516238, lng: -2.6013804 },
                 disableDoubleClickZoom: true,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: false,
                 zoom: 15
             });
+
+            let settings = document.createElement('div');
+            $(settings).append($('<h5><span class="text-primary">Project name: </span>' +
+                '<span id="project-name-display" class="text-success">' + projectName + '</span></h5>'))
+                .append($('<button id="settings-button" type="button" class="btn btn-primary">Change</button>'))
+                .css('padding', '1em')
+                .click(() => {
+                    showSettings();
+                });
+            map.controls[google.maps.ControlPosition.TOP_LEFT].push(settings);
 
             map.addListener('click', onMapClick);
         }
 
         function onMapClick(event) {
-            click = {'latitude': event.latLng.lat(), 'longitude': event.latLng.lng()};
-            console.log(click);
-            refClick.set(click);
+            if (projectName.length > 0) {
+                click = { 'latitude': event.latLng.lat(), 'longitude': event.latLng.lng() };
+                console.log(click);
+                refClick.set(click);
+            }
+        }
+
+        function initFirebase() {
+            refClick = database.ref("/" + projectName + "/location");
+        }
+
+        function setProjectName(name) {
+            projectName = name;
+            $('#project-name-display').text(name);
+            initFirebase();
+        }
+
+        function checkNameExists(name, callback) {
+            database.ref("/" + name + "/location").once("value", data => {
+                callback(data.exists());
+            });
         }
 
     </script>
-
 </head>
 
 <body>
-    <div id="map"></div>
+    <div id="settings-form" style="display:none; padding:1em">
+        <form>
+            <div class="form-group">
+                <input type="text" class="form-control" id="project-name" style="width:50%">
+            </div>
+            <button id="save-settings" type="button" class="btn btn-success">Save</button>
+            <button id="cancel-settings" type="button" class="btn btn-warning">Cancel</button>
+        </form>
+        <div class="alert alert-danger" id="project-not-found" style="display:none;">
+            Project name not found!
+        </div>
+    </div>
+
+    <div id="map" style="height: 100%"></div>
 
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDDH6z_K4eyScVhx5qkkoWR9EmNToZZvNE&callback=initMap" async
         defer></script>
+
+    <script>
+        $("#save-settings").click(() => {
+            showWait();
+            hideNotFound();
+            let project_name = $("#project-name").val();
+            checkNameExists(project_name, result => {
+                hideWait();
+                if (result) {
+                    setProjectName($("#project-name").val());
+                    hideSettings();
+                } else {
+                    showNotFound();
+                }
+            });
+        });
+
+        $("#cancel-settings").click(() => {
+            hideSettings();
+        });
+
+        if (projectName.length == 0) {
+            showSettings();
+        }
+
+        function showSettings() {
+            $('#settings-button').attr('disabled', 'true');
+            hideNotFound();
+            $("#settings-form").slideDown("fast");
+            $("#project-name").val(projectName).focus();
+        }
+
+        function hideSettings() {
+            $("#settings-form").slideToggle("fast");
+            $('#settings-button').removeAttr('disabled');
+        }
+
+        function showNotFound() {
+            $('#project-not-found').slideDown("fast");
+            $("#project-name").focus();
+        }
+
+        function hideNotFound() {
+            $('#project-not-found').hide();
+        }
+
+        function showWait() {
+            $('#settings-form, button, input').css('cursor', 'wait');
+        }
+
+        function hideWait() {
+            $('#settings-form, button, input').css('cursor', '');
+        }
+    </script>
 
 </body>
 

@@ -14,6 +14,7 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import io.reactivex.Flowable
 import timber.log.Timber
+import uk.co.sullenart.teleport.model.LocationRequest
 import java.util.concurrent.TimeUnit
 
 const val NOTIFICATION_CHANNEL_ID = "teleport"
@@ -21,6 +22,17 @@ const val NOTIFICATION_CHANNEL_NAME = "Location updates"
 const val NOTIFICATION_ID = 1
 
 class LocationService : Service() {
+    companion object {
+        const val EXTRA_PROJECT_NAME = "project-name"
+
+        fun start(context: Context, projectName: String) {
+            Intent(context, LocationService::class.java).let {
+                it.putExtra(EXTRA_PROJECT_NAME, projectName)
+                context.startService(it)
+            }
+        }
+    }
+
     val notificationBuilder: NotificationCompat.Builder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_mock_location)
             .setContentTitle("Teleport")
@@ -31,7 +43,8 @@ class LocationService : Service() {
     lateinit var notificationManager: NotificationManager
     lateinit var locationClient: FusedLocationProviderClient
 
-    var latestRequest: LocationRequest? = null
+    val locationListener = LocationListener()
+    var latestRequest = LocationRequest.createInvalid()
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -50,20 +63,26 @@ class LocationService : Service() {
 
         startForeground(NOTIFICATION_ID, notificationBuilder.build())
         Timber.d("Mock location service set to foreground")
+    }
 
-        LocationListener().updates
-                .mergeWith(
-                        Flowable.interval(2, TimeUnit.SECONDS)
-                                .map { latestRequest }
-                )
-                .retry(10)
-                .subscribe {
-                    it?.let {
+    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        intent.getStringExtra(EXTRA_PROJECT_NAME)?.let {
+            locationListener.setProjectName(it)
+            locationListener.updates
+                    .mergeWith(
+                            Flowable.interval(2, TimeUnit.SECONDS)
+                                    .map { latestRequest }
+                    )
+                    .filter { it.isValid() }
+                    .retry(10)
+                    .subscribe {
                         updateNotification(it.toString())
                         updateMock(it)
                         latestRequest = it
                     }
-                }
+        }
+
+        return START_REDELIVER_INTENT
     }
 
     fun updateNotification(content: String) {
@@ -75,8 +94,8 @@ class LocationService : Service() {
 
     fun updateMock(request: LocationRequest) {
         val location = Location("Teleport").apply {
-            latitude = request.latitude ?: 0.0
-            longitude = request.longitude ?: 0.0
+            latitude = request.latitude
+            longitude = request.longitude
             time = System.currentTimeMillis()
             elapsedRealtimeNanos = SystemClock.elapsedRealtimeNanos()
             accuracy = 5.0f

@@ -1,25 +1,39 @@
 package uk.co.sullenart.teleport
 
-import android.content.Intent
-import android.location.Location
 import android.os.Bundle
-import android.os.SystemClock
-import android.support.v7.app.AppCompatActivity
-import com.google.android.gms.location.LocationServices
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import android.widget.TextView
+import butterknife.BindView
+import butterknife.OnClick
+import io.reactivex.rxkotlin.subscribeBy
 import timber.log.Timber
+import uk.co.sullenart.teleport.settings.ProjectNameActivity
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity(R.layout.activity_main) {
+
+    @BindView(R.id.project_name)
+    lateinit var projectName: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
-        Intent(this, LocationService::class.java).let {
-            startService(it)
-        }
+        namePreference.asObservable()
+                .doOnNext { projectName.text = it }
+                .filter { it.isNotEmpty() }
+                .subscribe { LocationService.start(this@MainActivity, it) }
+
+        namePreference.asObservable()
+                .take(1)
+                .filter { it.isEmpty() }
+                .firstOrError()
+                .subscribeBy(onSuccess = {
+                    ProjectNameActivity.start(this)
+                }, onError = {
+                    Timber.d("Project name already set")
+                })
+    }
+
+    @OnClick(R.id.set_project_name)
+    fun onSetName() {
+        ProjectNameActivity.start(this)
     }
 }
