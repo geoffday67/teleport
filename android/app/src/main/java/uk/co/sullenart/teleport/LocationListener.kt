@@ -1,9 +1,6 @@
 package uk.co.sullenart.teleport
 
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 import io.reactivex.Flowable
 import io.reactivex.processors.PublishProcessor
 import timber.log.Timber
@@ -15,22 +12,28 @@ class LocationListener {
     val updates: Flowable<LocationRequest>
         get() = updateProcessor.share()
 
-    fun setProjectName(name: String) {
-        FirebaseDatabase
-                .getInstance()
-                .getReference("/$name/location").addValueEventListener(
-                        object : ValueEventListener {
-                            override fun onCancelled(error: DatabaseError) {
-                                updateProcessor.onError(error.toException())
-                            }
+    var databaseReference: DatabaseReference? = null
 
-                            override fun onDataChange(data: DataSnapshot) {
-                                data.getValue(LocationRequest::class.java)?.let {
-                                    Timber.d("Location request $it")
-                                    updateProcessor.onNext(it)
-                                }
-                            }
-                        }
-                )
+    fun setProjectName(name: String) {
+        databaseReference?.removeEventListener(listener)
+
+        databaseReference = FirebaseDatabase
+                .getInstance()
+                .getReference("/$name/location").apply {
+                    addValueEventListener(listener)
+                }
+    }
+
+    val listener = object : ValueEventListener {
+        override fun onCancelled(error: DatabaseError) {
+            updateProcessor.onError(error.toException())
+        }
+
+        override fun onDataChange(data: DataSnapshot) {
+            data.getValue(LocationRequest::class.java)?.let {
+                Timber.d("Location request $it")
+                updateProcessor.onNext(it)
+            }
+        }
     }
 }
