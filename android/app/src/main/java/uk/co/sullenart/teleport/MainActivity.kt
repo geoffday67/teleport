@@ -40,6 +40,12 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
                 })
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+
+        unbindService(serviceConnection)
+    }
+
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceDisconnected(name: ComponentName) {
             Timber.e("Error connecting to location service")
@@ -69,13 +75,6 @@ class MainActivity : BaseActivity(R.layout.activity_main) {
 
     @OnClick(R.id.quit)
     fun onQuit() {
-        locationService?.stop()
-        unbindService(serviceConnection)
-
-        Intent(this, LocationService::class.java).let {
-            stopService(it)
-        }
-
         finish()
     }
 }

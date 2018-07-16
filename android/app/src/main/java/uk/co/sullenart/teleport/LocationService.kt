@@ -2,6 +2,7 @@ package uk.co.sullenart.teleport
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -14,7 +15,6 @@ import android.support.v4.app.NotificationCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import io.reactivex.Flowable
-import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import timber.log.Timber
 import uk.co.sullenart.teleport.model.LocationRequest
@@ -30,30 +30,33 @@ class LocationService : Service() {
             LocationBinder(this)
 
     lateinit var notificationManager: NotificationManager
+    lateinit var notificationBuilder: NotificationCompat.Builder
     lateinit var locationClient: FusedLocationProviderClient
 
-    val compositeDisposable = CompositeDisposable()
     val locationListener = LocationListener()
     var latestRequest = LocationRequest.createInvalid()
     var locationDisposable: Disposable? = null
-
-    val notificationBuilder: NotificationCompat.Builder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_mock_location)
-            .setContentTitle("Teleport")
-            .setContentText("Waiting for location update")
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setChannelId(NOTIFICATION_CHANNEL_ID)
 
     override fun onCreate() {
         super.onCreate()
         Timber.d("Mock location service created")
 
+        notificationBuilder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_mock_location)
+                .setContentTitle("Teleport")
+                .setContentText("Waiting for location update")
+                .setOngoing(true)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setChannelId(NOTIFICATION_CHANNEL_ID)
+                .setContentIntent(PendingIntent.getActivity(this, 1,
+                        Intent(this, MainActivity::class.java).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        }, 0))
+
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        //notificationManager = NotificationManagerCompat.from(this)
         locationClient = LocationServices.getFusedLocationProviderClient(applicationContext)
 
         if (Build.VERSION.SDK_INT >= 26) {
-            //val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val channel = NotificationChannel(NOTIFICATION_CHANNEL_ID, NOTIFICATION_CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW)
             notificationManager.createNotificationChannel(channel)
         }
@@ -62,18 +65,10 @@ class LocationService : Service() {
         Timber.d("Mock location service set to foreground")
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        return START_NOT_STICKY
-    }
-
     override fun onDestroy() {
         super.onDestroy()
 
         locationDisposable?.dispose()
-    }
-
-    fun stop() {
-        stopForeground(true)
     }
 
     fun setProjectName(projectName: String) {
